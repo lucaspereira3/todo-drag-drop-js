@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List Drag & Drop</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f9f9f9;
+      padding: 2rem;
+      text-align: center;
+    }
+    #taskInput {
+      padding: 0.5rem;
+      width: 60%;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      max-width: 400px;
+      margin: 2rem auto;
+    }
+    li {
+      background: #fff;
+      margin: 0.5rem 0;
+      padding: 1rem;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      cursor: grab;
+    }
+    li.dragging {
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>✅ To-Do List com Drag & Drop</h1>
+  <input id="taskInput" type="text" placeholder="Nova tarefa...">
+  <button onclick="addTask()">Adicionar</button>
+  <ul id="taskList"></ul>
+
+  <script>
+    const taskInput = document.getElementById("taskInput");
+    const taskList = document.getElementById("taskList");
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function renderTasks() {
+      taskList.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.setAttribute("draggable", true);
+        li.textContent = task;
+        li.dataset.index = index;
+        li.addEventListener("dragstart", dragStart);
+        li.addEventListener("dragover", dragOver);
+        li.addEventListener("drop", drop);
+        li.addEventListener("dragend", dragEnd);
+        taskList.appendChild(li);
+      });
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function addTask() {
+      const value = taskInput.value.trim();
+      if (!value) return;
+      tasks.push(value);
+      taskInput.value = "";
+      renderTasks();
+    }
+
+    function dragStart(e) {
+      e.target.classList.add("dragging");
+      e.dataTransfer.setData("text/plain", e.target.dataset.index);
+    }
+
+    function dragOver(e) {
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      const fromIndex = e.dataTransfer.getData("text/plain");
+      const toIndex = e.target.dataset.index;
+
+      if (fromIndex === toIndex) return;
+      const moved = tasks.splice(fromIndex, 1)[0];
+      tasks.splice(toIndex, 0, moved);
+      renderTasks();
+    }
+
+    function dragEnd(e) {
+      e.target.classList.remove("dragging");
+    }
+
+    renderTasks();
+  </script>
+</body>
+</html>
